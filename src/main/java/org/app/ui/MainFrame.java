@@ -30,11 +30,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainFrame extends JFrame {
-    private static final String CLIENT_ID = "YOUR_CLIENT_ID";
-    private static final String APP_SECRET = "YOUR_APP_SECRET";
-
+    private final JTextField clientIdField = new JTextField(30);
+    private final JTextField appSecretField = new JTextField(30);
     private final JTextField tokenField = new JTextField(30);
     private final JTextArea logArea = new JTextArea();
+    private final JButton getInvoiceButton = new JButton("Get Invoice");
 
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -48,27 +48,42 @@ public class MainFrame extends JFrame {
         JScrollPane scroll = new JScrollPane(logArea);
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        topPanel.add(new JLabel("Client ID:"));
+        topPanel.add(clientIdField);
+        topPanel.add(new JLabel("App Secret:"));
+        topPanel.add(appSecretField);
         topPanel.add(new JLabel("Resource Token:"));
         topPanel.add(tokenField);
 
-        JButton getInvoiceButton = new JButton("Get Invoice");
         topPanel.add(getInvoiceButton);
 
         getContentPane().add(topPanel, BorderLayout.NORTH);
         getContentPane().add(scroll, BorderLayout.CENTER);
 
         getInvoiceButton.addActionListener(e -> onGetInvoice());
+
+        // Disable button initially
+        getInvoiceButton.setEnabled(false);
+
+        // Add document listeners to enable button
+        clientIdField.getDocument().addDocumentListener(new FieldsListener(this));
+        appSecretField.getDocument().addDocumentListener(new FieldsListener(this));
+        tokenField.getDocument().addDocumentListener(new FieldsListener(this));
+    }
+
+    public void checkFields() {
+        getInvoiceButton.setEnabled(!clientIdField.getText().trim().isEmpty() &&
+                                    !appSecretField.getText().trim().isEmpty() &&
+                                    !tokenField.getText().trim().isEmpty());
     }
 
     private void onGetInvoice() {
+        String clientId = clientIdField.getText().trim();
+        String appSecret = appSecretField.getText().trim();
         String token = tokenField.getText().trim();
-        if (token.isEmpty()) {
-            log("Please enter a resource token.");
-            return;
-        }
 
         log("Fetching invoice URL for token: " + token);
-        String url = fetchInvoiceUrl(token);
+        String url = fetchInvoiceUrl(token, clientId, appSecret);
         if (url == null) {
             log("Failed to fetch invoice URL.");
             return;
@@ -99,16 +114,16 @@ public class MainFrame extends JFrame {
         logArea.setCaretPosition(logArea.getDocument().getLength());
     }
 
-    private String fetchInvoiceUrl(String resourceToken) {
+    private String fetchInvoiceUrl(String resourceToken, String clientId, String appSecret) {
         try {
             Map<String, String> params = new HashMap<>();
-            params.put("client_id", CLIENT_ID);
+            params.put("client_id", clientId);
             params.put("data_type", "JSON");
             params.put("resourceToken", resourceToken);
             params.put("timestamp", String.valueOf(System.currentTimeMillis()));
             params.put("type", "bg.clearance.invoice.get");
 
-            String sign = SignCalculationExample.calculateSign(params, APP_SECRET);
+            String sign = SignCalculationExample.calculateSign(params, appSecret);
             params.put("sign", sign);
 
             String requestBody = objectMapper.writeValueAsString(params);
