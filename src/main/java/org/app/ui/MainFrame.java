@@ -47,15 +47,36 @@ public class MainFrame extends JFrame {
         logArea.setEditable(false);
         JScrollPane scroll = new JScrollPane(logArea);
 
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        topPanel.add(new JLabel("Client ID:"));
-        topPanel.add(clientIdField);
-        topPanel.add(new JLabel("App Secret:"));
-        topPanel.add(appSecretField);
-        topPanel.add(new JLabel("Resource Token:"));
-        topPanel.add(tokenField);
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new javax.swing.BoxLayout(topPanel, javax.swing.BoxLayout.Y_AXIS));
 
-        topPanel.add(getInvoiceButton);
+        topPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Create individual panels for each row to keep
+
+        JPanel clientPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        clientPanel.add(new JLabel("Client ID:  ")); //
+        clientPanel.add(clientIdField);
+
+        JPanel secretPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        secretPanel.add(new JLabel("App Secret:   ")); //
+        secretPanel.add(appSecretField);
+
+        JPanel tokenPanel = new JPanel(new FlowLayout
+                (FlowLayout.LEFT));
+        tokenPanel.add(new JLabel("Resource Token:"));
+        tokenPanel.add(tokenField);
+
+        // Panel for the button
+        JPanel buttonPanel = new JPanel(new FlowLayout
+                (FlowLayout.LEFT));
+        buttonPanel.add(getInvoiceButton);
+
+        // Add the sub-panels to the main panel
+        topPanel.add(clientPanel);
+        topPanel.add(secretPanel);
+        topPanel.add(tokenPanel);
+        topPanel.add(buttonPanel);
 
         getContentPane().add(topPanel, BorderLayout.NORTH);
         getContentPane().add(scroll, BorderLayout.CENTER);
@@ -73,8 +94,8 @@ public class MainFrame extends JFrame {
 
     public void checkFields() {
         getInvoiceButton.setEnabled(!clientIdField.getText().trim().isEmpty() &&
-                                    !appSecretField.getText().trim().isEmpty() &&
-                                    !tokenField.getText().trim().isEmpty());
+                !appSecretField.getText().trim().isEmpty() &&
+                !tokenField.getText().trim().isEmpty());
     }
 
     private void onGetInvoice() {
